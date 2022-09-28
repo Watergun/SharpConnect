@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace SharpConnect
+namespace AnimalZoo
 {
-    class Shell
+    class Shark
     {
         public static string exec(string command)
         {
