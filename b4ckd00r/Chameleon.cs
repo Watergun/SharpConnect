@@ -384,7 +384,6 @@ namespace AnimalZoo
         }
         private static MethodInfo getEntryPoint(Assembly asm)
         {
-
             return asm.EntryPoint;
         }
 
