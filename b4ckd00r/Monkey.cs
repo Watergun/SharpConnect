@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AnimalZoo
 {
-    class Monkey
+    class Monke
     {
         public static string asGet(string param)
         {
